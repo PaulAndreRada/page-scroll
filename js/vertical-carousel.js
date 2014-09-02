@@ -10,16 +10,10 @@ $(function(){
 	    $panes = $container.find( 'li' ), // sections
 	    paneHeight = 0,
 	    paneCount = $panes.length,
-	    currentPane = 0;
+	    currentPane = 0,
+	    animationTime = 450,
+	    lastAnimationTime;
 	    
-	    /*
-	    console.log( '$element' );
-	    console.log( $element );
-	    console.log( '$container' );
-	    console.log( $container );
-	    console.log( '$panes' );
-	    console.log( $panes );
-	    */
 
 	    VC.init = function(){ 
 		//
@@ -161,12 +155,47 @@ $(function(){
 		}
 		console.log( 'currentPane :'+currentPane );
 	    };
+	    
 
+	    // FIGURE ME OUT!
+	    // activate the carousel event handler for the desktop
+	    $(window).scroll( function(e){ 
+		    //
+		    var $this = $(this),
+			timeNow = new Date().getTime();
+		    
+		    //console.log( 'timeNow : ' + timeNow );
+		    if ( lastAnimationTime + animationTime >= timeNow ){ 
+			// leave function as the slide is still adjusting
+			e.preventDefault();
+			e.stopPropagation();
+			return console.log( 'cancel scroll' );
+		    } else { 
 
-	    // activate the carousel event handler
+			if ( $this.scrollTop() === 1 ){
+			    e.preventDefault();
+			    e.stopPropagation();
+			    VC.next();
+			    lastAnimationTime = timeNow;
+
+			} else if ( $this.scrollTop() === -1){ 
+			    e.preventDefault();
+			    e.stopPropagation();
+			    VC.prev();
+			    lastAnimationTime = timeNow;
+
+			} else {
+			    console.log( $(this).scrollTop() );
+			};
+		    };
+		    
+	    });
+	    //
+	    // activate the carousel event handler for mobile
 	    $element.hammer({ drag_to_lock_target : true })
 	    .on( 'release dragdown dragup swipeleft swiperight swipeup swipedown', handleTouch );
 	    //
+	    
 	    return VC;
 	    //
 	};//verticalCarousel
