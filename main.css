@@ -1,0 +1,26 @@
+//
+
+body{ color: blue; }
+
+.container{ 
+   display: inline-block;
+   height: 100%:
+   min-height: 100%;
+   overflow: hidden;
+}
+
+.one{ 
+  position: relative;
+  background: pink;
+}
+
+.two { 
+  position: relative;
+  background : green;
+}
+
+.three { 
+  position: relative;
+  background: yellow;
+}
+
