@@ -1,7 +1,7 @@
 
 // carousel extends 
 // use on tags : html, body, #carouselElement, ul
-.Carousel-Setup { 
+.carousel-setup { 
   min-height: 100%;
   height: 100%;
   padding: 0;
