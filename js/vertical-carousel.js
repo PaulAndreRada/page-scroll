@@ -1,5 +1,4 @@
 $(function(){ 
-	
 	//	
 	var VerticalCarousel = function( element ){ 
 	        
@@ -35,6 +34,7 @@ $(function(){
 		for ( var i=0; i<paneCount; i++ ){ 
 		    // 
 		    $panes.height( paneHeight );
+		    //
 		};
 		//
 		$container.height( paneHeight * paneCount );
@@ -57,6 +57,12 @@ $(function(){
 		//
 		VC.setContainerOffset( offset, true );
 		//
+		// MAKE SCALABLE @FIREFOX HACK
+		window.setTimeout(function(){ 
+			$element.css( 'overflow' , 'visible' );
+		    }, animationTime*2 );
+		
+		
 		return VC;
 	    };
 	        
@@ -158,7 +164,11 @@ $(function(){
 		var $this = $(this),
 		timeNow = new Date().getTime();
 		
-		
+		//console.log( e );
+
+		console.log( 'you scrolled over'+e.target );
+		//console.log( $this );
+
 		if ( lastAnimationTime + animationTime >= timeNow ){ 
 		    //
 		    // leave function as the slide is still adjusting
@@ -168,15 +178,17 @@ $(function(){
 		    //
 		} else { 
 		    //
-		    if ( $this.scrollTop() === 1 ){
+		    if ( $this.scrollTop() >= 1 ){
 			e.preventDefault();
 			e.stopPropagation();
 			//
+			console.log( 'this happening?' ) 
+			$element.css( 'overflow' , 'hidden' );
 			VC.next();
 			//
 			lastAnimationTime = timeNow;
 			//
-		    } else if ( $this.scrollTop() === -1){ 
+		    } else if ( $this.scrollTop() <= -1){ 
 			e.preventDefault();
 			e.stopPropagation();
 			//
@@ -194,16 +206,14 @@ $(function(){
 	    //
 	    // activate the carousel event handler for mobile
 	    $element.hammer({ drag_to_lock_target : true })
-	    .on( 'release dragdown dragup swipeleft swiperight swipeup swipedown', handleTouch );
+	    .on( 'release dragdown dragup swipeleft swiperight swipeup swipedown',
+		 handleTouch );
 	    //
 	    return VC;
 	    //
 	};//verticalCarousel
 	
+	var Carousel = VerticalCarousel( '#carousel' );
+	Carousel.init();
 	
-	
-	var vertTest = VerticalCarousel( '#carousel' );
-	vertTest.init();
-	
-	
-    });
+    });// end 
