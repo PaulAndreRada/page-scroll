@@ -187,8 +187,7 @@ $(function(){
 		waitTime = animationTime + quietPeriod,
 		scrollTop = $this.scrollTop();
 		//
-		//
-		// Cancel scroll if currently animating or within quiet period
+		//		// Cancel scroll if currently animating or within quiet period
 		if( timeElapsed < waitTime ){
 		    //
 		    event.preventDefault();
