@@ -1,3 +1,79 @@
+
+
+
+/*------------------------------------------------*/
+/*  Credit: Eike Send for the swipe event */
+/*------------------------------------------------*/
+/*
+// @swipe event
+(function($) { 
+  $.fn.swipeEvents = function() {
+    return this.each(function() {
+      
+      var startX,
+          startY,
+          $this = $(this); // no need, its doubling up
+      
+      $this.bind('touchstart', touchstart);
+      
+      function touchstart(event) {
+        //
+        //grab the touches event info
+        var touches = event.originalEvent.touches;
+
+
+        if (touches && touches.length) {
+          //
+          // grab the matrix information for those events
+          startX = touches[0].pageX;
+          startY = touches[0].pageY;
+          //
+          // if touches exist bind touchmove and touch end
+          $this.bind('touchmove', touchmove);
+          $this.bind('touchend', touchend);
+        }
+        event.preventDefault();
+      }
+      
+      function touchmove(event) {
+        var touches = event.originalEvent.touches;
+        if (touches && touches.length) {
+          var deltaX = startX - touches[0].pageX;
+          var deltaY = startY - touches[0].pageY;
+          
+          if (deltaX >= 50) {
+            $this.trigger("swipeLeft");
+          }
+          if (deltaX <= -50) {
+            $this.trigger("swipeRight");
+          }
+          if (deltaY >= 50) {
+            $this.trigger("swipeUp");
+          }
+          if (deltaY <= -50) {
+            $this.trigger("swipeDown");
+          }
+          if (Math.abs(deltaX) >= 50 || Math.abs(deltaY) >= 50) {
+            $this.unbind('touchmove', touchmove);
+            $this.unbind('touchend', touchend);
+          }
+        }
+        event.preventDefault();
+      }
+      
+      function touchend(event) {
+        $this.unbind('touchmove', touchmove);
+        event.preventDefault();
+      }
+      
+    });
+  };
+})(jQuery);
+*/
+
+
+
+//@carousel
 $(function(){ 
 	//	
 	var VerticalCarousel = function( element ){ 
@@ -11,7 +87,8 @@ $(function(){
 	    paneCount = $panes.length,
 	    currentPane = 0,
 	    animationTime = 450,
-	    lastAnimationTime;
+	    quietPeriod = 1000,
+	    lastAnimationTime = 0;
 	    
 
 	    VC.init = function(){ 
@@ -57,13 +134,9 @@ $(function(){
 		//
 		VC.setContainerOffset( offset, true );
 		//
-		// MAKE SCALABLE @FIREFOX HACK
-		window.setTimeout(function(){ 
-			$element.css( 'overflow' , 'visible' );
-		    }, animationTime*2 );
-		
-		
+		//
 		return VC;
+		//
 	    };
 	        
 
@@ -92,25 +165,74 @@ $(function(){
 
 	    VC.next = function(){ 
 		// 
+		//
 		return VC.showPane( currentPane + 1 );
 		//
 	    };
 
 	    VC.prev = function(){ 
 		//
+		//
 		return VC.showPane( currentPane - 1);
 		//
 	    };
 	    
+	    
+	    var handleScroll = function( event, delta ){ 
+		//
+		var $this = $(this),
+		deltaOfInterest = delta,
+		timeNow = new Date().getTime(),
+		timeElapsed = timeNow - lastAnimationTime,
+		waitTime = animationTime + quietPeriod,
+		scrollTop = $this.scrollTop();
+		//
+		//
+		// Cancel scroll if currently animating or within quiet period
+		if( timeElapsed < waitTime ){
+		    //
+		    event.preventDefault();
+		    //
+		    // leave the function
+		    return;
+		}
+		//
+		// if delta is negative call prev()
+		if (deltaOfInterest < 0) {
+		    VC.next()
+		} else {
+		    VC.prev()
+		}
+		// set the last animations time
+		lastAnimationTime = timeNow;
+		//
+	    };
+	    //	    
+	    // @DESKTOP HANDLER
+	    // activate the carousel event handler for the desktop
+	    // make event handler
+	    $doc.bind('mousewheel DOMMouseScroll MozMousePixelScroll', function(event) {
+		    //
+		    event.preventDefault();
+		    // 
+		    // assing the delta depending on the brower [ webkit and presto || mozilla ]
+		    var delta = event.originalEvent.wheelDelta || -event.originalEvent.detail;
+		    //
+		    // call scroll function
+		    handleScroll(event, delta);
+		});
+	    
+
+	    	    
 	    var handleTouch = function( ev ){ 
 		//
 		// disable browser scrolling
 		ev.gesture.preventDefault();
-
+		//
 		switch(ev.type) {
                 case 'dragup':
                 case 'dragdown':
-
+		    //
                     // stick to the finger
                     var pane_offset = -(100/paneCount)*currentPane;
                     var drag_offset = ((100/paneHeight)*ev.gesture.deltaY)/ paneCount;
@@ -158,57 +280,17 @@ $(function(){
                     break;
 		}
 	    };
-	    
-	    var handleScroll = function( e ){ 
-		//
-		var $this = $(this),
-		timeNow = new Date().getTime();
-		
-		//console.log( e );
-
-		console.log( 'you scrolled over'+e.target );
-		//console.log( $this );
-
-		if ( lastAnimationTime + animationTime >= timeNow ){ 
-		    //
-		    // leave function as the slide is still adjusting
-		    e.preventDefault();
-		    e.stopPropagation();
-		    return;
-		    //
-		} else { 
-		    //
-		    if ( $this.scrollTop() >= 1 ){
-			e.preventDefault();
-			e.stopPropagation();
-			//
-			console.log( 'this happening?' ) 
-			$element.css( 'overflow' , 'hidden' );
-			VC.next();
-			//
-			lastAnimationTime = timeNow;
-			//
-		    } else if ( $this.scrollTop() <= -1){ 
-			e.preventDefault();
-			e.stopPropagation();
-			//
-			VC.prev();
-			//
-			lastAnimationTime = timeNow;
-			//
-		    };
-		    
-		}
-	    };
-	    
-	    // activate the carousel event handler for the desktop
-	    $(window).scroll( handleScroll );
 	    //
+	    // @MOBILE HANDLER
 	    // activate the carousel event handler for mobile
 	    $element.hammer({ drag_to_lock_target : true })
 	    .on( 'release dragdown dragup swipeleft swiperight swipeup swipedown',
 		 handleTouch );
-	    //
+	    
+	    
+	    
+	    
+	    
 	    return VC;
 	    //
 	};//verticalCarousel

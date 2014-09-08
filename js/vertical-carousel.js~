@@ -1,3 +1,74 @@
+
+
+// @swipe event
+(function($) { 
+  $.fn.swipeEvents = function() {
+    return this.each(function() {
+      
+      var startX,
+          startY,
+          $this = $(this); // no need, its doubling up
+      
+      $this.bind('touchstart', touchstart);
+      
+      function touchstart(event) {
+        //
+        //grab the touches event info
+        var touches = event.originalEvent.touches;
+
+
+        if (touches && touches.length) {
+          //
+          // grab the matrix information for those events
+          startX = touches[0].pageX;
+          startY = touches[0].pageY;
+          //
+          // if touches exist bind touchmove and touch end
+          $this.bind('touchmove', touchmove);
+          $this.bind('touchend', touchend);
+        }
+        event.preventDefault();
+      }
+      
+      function touchmove(event) {
+        var touches = event.originalEvent.touches;
+        if (touches && touches.length) {
+          var deltaX = startX - touches[0].pageX;
+          var deltaY = startY - touches[0].pageY;
+          
+          if (deltaX >= 50) {
+            $this.trigger("swipeLeft");
+          }
+          if (deltaX <= -50) {
+            $this.trigger("swipeRight");
+          }
+          if (deltaY >= 50) {
+            $this.trigger("swipeUp");
+          }
+          if (deltaY <= -50) {
+            $this.trigger("swipeDown");
+          }
+          if (Math.abs(deltaX) >= 50 || Math.abs(deltaY) >= 50) {
+            $this.unbind('touchmove', touchmove);
+            $this.unbind('touchend', touchend);
+          }
+        }
+        event.preventDefault();
+      }
+      
+      function touchend(event) {
+        $this.unbind('touchmove', touchmove);
+        event.preventDefault();
+      }
+      
+    });
+  };
+})(jQuery);
+
+
+
+
+//@carousel
 $(function(){ 
 	//	
 	var VerticalCarousel = function( element ){ 
@@ -15,6 +86,8 @@ $(function(){
 	    
 
 	    VC.init = function(){ 
+		//
+		VC.enableScrolling();
 		//
 		VC.setPaneDimensions();
 		//
@@ -34,6 +107,7 @@ $(function(){
 		for ( var i=0; i<paneCount; i++ ){ 
 		    // 
 		    $panes.height( paneHeight );
+		    //
 		};
 		//
 		$container.height( paneHeight * paneCount );
@@ -56,7 +130,17 @@ $(function(){
 		//
 		VC.setContainerOffset( offset, true );
 		//
+		// @FIREFOX HACK
+		window.setTimeout(function(){ 
+			// 
+			// make the carousel scrollable
+			// in order to sense the scrolling action
+			VC.enableScrolling();
+			//
+		    }, animationTime );
+		//
 		return VC;
+		//
 	    };
 	        
 
@@ -85,11 +169,17 @@ $(function(){
 
 	    VC.next = function(){ 
 		// 
+		// @firefox hack
+		VC.disableScrolling();
+		//
 		return VC.showPane( currentPane + 1 );
 		//
 	    };
 
 	    VC.prev = function(){ 
+		//
+		// @firefox hack
+		VC.disableScrolling();
 		//
 		return VC.showPane( currentPane - 1);
 		//
@@ -97,6 +187,7 @@ $(function(){
 	    
 	    var handleTouch = function( ev ){ 
 		//
+		/* @Temp
 		// disable browser scrolling
 		ev.gesture.preventDefault();
 
@@ -150,14 +241,18 @@ $(function(){
                     }
                     break;
 		}
+		*/
 	    };
 	    
 	    var handleScroll = function( e ){ 
 		//
 		var $this = $(this),
-		timeNow = new Date().getTime();
+		timeNow = new Date().getTime(),
+		scrollTop = $this.scrollTop();
 		
-		
+		console.log( e );
+		//console.log( $this );
+
 		if ( lastAnimationTime + animationTime >= timeNow ){ 
 		    //
 		    // leave function as the slide is still adjusting
@@ -167,7 +262,10 @@ $(function(){
 		    //
 		} else { 
 		    //
-		    if ( $this.scrollTop() === 1 ){
+		    if ( scrollTop > 0 
+			 ||
+			 scrollTop < 5){
+			//
 			e.preventDefault();
 			e.stopPropagation();
 			//
@@ -175,7 +273,10 @@ $(function(){
 			//
 			lastAnimationTime = timeNow;
 			//
-		    } else if ( $this.scrollTop() === -1){ 
+		    } else if ( scrollTop < 0 
+				||
+				scrollTop > -5 ){ 
+			
 			e.preventDefault();
 			e.stopPropagation();
 			//
@@ -189,13 +290,35 @@ $(function(){
 	    };
 	    
 	    // activate the carousel event handler for the desktop
-	    $(window).scroll( handleScroll );
+	    $(window).bind('mousewheel DOMMouseScroll MozMousePixelScroll',
+			   handleScroll );
 	    //
 	    // activate the carousel event handler for mobile
 	    $element.hammer({ drag_to_lock_target : true })
 	    .on( 'release dragdown dragup swipeleft swiperight swipeup swipedown',
 		 handleTouch );
-	    //
+	    
+
+	    
+	    // @helpers -------------------------------------------//
+	    
+	    VC.enableScrolling = function(){ 
+		//
+		$element.css( 'overflow' , 'visible' );
+		//
+		console.log( 'scroll enabled' );
+		return VC;
+	    };
+
+	    VC.disableScrolling = function(){ 
+		//
+		$element.css( 'overflow' , 'hidden' );
+		//
+		console.log( 'scroll disabled' );
+		return VC;
+	    };
+
+	    
 	    return VC;
 	    //
 	};//verticalCarousel
