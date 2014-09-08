@@ -1,84 +1,12 @@
 
-
-
-/*------------------------------------------------*/
-/*  Credit: Eike Send for the swipe event */
-/*------------------------------------------------*/
-/*
-// @swipe event
-(function($) { 
-  $.fn.swipeEvents = function() {
-    return this.each(function() {
-      
-      var startX,
-          startY,
-          $this = $(this); // no need, its doubling up
-      
-      $this.bind('touchstart', touchstart);
-      
-      function touchstart(event) {
-        //
-        //grab the touches event info
-        var touches = event.originalEvent.touches;
-
-
-        if (touches && touches.length) {
-          //
-          // grab the matrix information for those events
-          startX = touches[0].pageX;
-          startY = touches[0].pageY;
-          //
-          // if touches exist bind touchmove and touch end
-          $this.bind('touchmove', touchmove);
-          $this.bind('touchend', touchend);
-        }
-        event.preventDefault();
-      }
-      
-      function touchmove(event) {
-        var touches = event.originalEvent.touches;
-        if (touches && touches.length) {
-          var deltaX = startX - touches[0].pageX;
-          var deltaY = startY - touches[0].pageY;
-          
-          if (deltaX >= 50) {
-            $this.trigger("swipeLeft");
-          }
-          if (deltaX <= -50) {
-            $this.trigger("swipeRight");
-          }
-          if (deltaY >= 50) {
-            $this.trigger("swipeUp");
-          }
-          if (deltaY <= -50) {
-            $this.trigger("swipeDown");
-          }
-          if (Math.abs(deltaX) >= 50 || Math.abs(deltaY) >= 50) {
-            $this.unbind('touchmove', touchmove);
-            $this.unbind('touchend', touchend);
-          }
-        }
-        event.preventDefault();
-      }
-      
-      function touchend(event) {
-        $this.unbind('touchmove', touchmove);
-        event.preventDefault();
-      }
-      
-    });
-  };
-})(jQuery);
-*/
-
-
-
 //@carousel
 $(function(){ 
 	//	
-	var VerticalCarousel = function( element ){ 
+	var VerticalCarousel = function( element , options ){ 
 	        
-	    var VC = {},
+	    var VC = {
+			onChange : undefined
+    	},
 	    $doc = $( document ),
 	    $element = $doc.find( element ), 
 	    $container = $element.find( 'ul' ), 
@@ -89,6 +17,10 @@ $(function(){
 	    animationTime = 450,
 	    quietPeriod = 1000,
 	    lastAnimationTime = 0;
+	    //
+ 	   	// add any new options to the carousel object
+ 	   	VC = $.extend( VC , options );
+
 	    
 
 	    VC.init = function(){ 
@@ -134,6 +66,12 @@ $(function(){
 		//
 		VC.setContainerOffset( offset, true );
 		//
+		// if theres a callback activate it
+		if( typeof VC.onChange === 'function' ){ 
+	    	//
+	    	VC.onChange.call( VC , currentPane );
+	    	//
+		}
 		//
 		return VC;
 		//
@@ -285,9 +223,6 @@ $(function(){
 	    $element.hammer({ drag_to_lock_target : true })
 	    .on( 'release dragdown dragup swipeleft swiperight swipeup swipedown',
 		 handleTouch );
-	    
-	    
-	    
 	    
 	    
 	    return VC;
